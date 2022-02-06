@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Barbie's Trance</title>
+        <link rel = "icon" href = 
+"https://cdn.worldvectorlogo.com/logos/barbie-2.svg" 
+        type = "image/x-icon">
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://cdn.babylonjs.com/viewer/babylon.viewer.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+            .header {
+                font-size: medium;
+                font-family: 'Courier New', Courier, monospace;
+                color: white;
+                position: absolute;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+                top: 90%; /* Adjust this value to move the positioned div up and down */
+                text-align: center;
+                width: 60%; /* Set the width of the positioned div */
+            }
+            a {
+                /* text-decoration: none; */
+                color: white;
+                font-size: small;
+            }
+        </style>
+    </head>
+<body>
+    <div class="header"> Barbie's Trance <br> 
+        <a href ="https://github.com/seattlemxt/pretty_lil_things/blob/main/week1/barbies_trance.html">Sourcecode</a>
+    </div>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+    var canvas = document.getElementById("renderCanvas");
+
+    var startRenderLoop = function (engine, canvas) {
+        engine.runRenderLoop(function () {
+            if (sceneToRender && sceneToRender.activeCamera) {
+                sceneToRender.render();
+            }
+        });
+    }
+
+    var engine = null;
+    var scene = null;
+    var sceneToRender = null;
+    var createDefaultEngine = function() { 
+        return new BABYLON.Engine(canvas, true, { 
+            preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false
+        }); 
+    };
+    var createScene = function () {
+    var scene = new BABYLON.Scene(engine);
+
+    var camera = new BABYLON.ArcRotateCamera("camera1", 0, 0, 15, BABYLON.Vector3.Zero(), scene);
+	
+	camera.setPosition(new BABYLON.Vector3(0, 5, -20));
+    camera.collisionRadius = new BABYLON.Vector3(0.5, 0.5, 0.5)
+    camera.attachControl(canvas, true);
+	
+	camera.upperBetaLimit = Math.PI / 2;
+	camera.lowerRadiusLimit = 4;
+
+    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+    light.intensity = 0.8;
+    light.specular = new BABYLON.Color3(1, 0.5, 0.5);
+
+    // skybox
+    var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", { size: 10000.0 }, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(
+        "https://raw.githubusercontent.com/BabylonJS/Babylon.js/master/Playground/textures/skybox",
+         scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(1, 0, 0);
+    skybox.material = skyboxMaterial;
+
+    // var hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+        //"https://raw.githubusercontent.com/BabylonJS/Babylon.js/master/Playground/textures/tiergartenOvercastHDR.dds", scene);
+    // var skybox = scene.createDefaultSkybox(hdrTexture, true, 100);
+
+    var knot = BABYLON.Mesh.CreateTorusKnot("knot", 1, 0.1, 128, 64, 3, 4, scene);
+		
+	var yellowSphere = BABYLON.Mesh.CreateSphere("yellowSphere", 16, 1.5, scene);
+	yellowSphere.setPivotMatrix(BABYLON.Matrix.Translation(3, 0, 0), false);
+    yellowSphere.actionManager = new BABYLON.ActionManager(scene);
+	yellowSphere.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, function () {
+		console.log('sphere clicked');
+	}));
+	
+	var blueSphere = BABYLON.Mesh.CreateSphere("blueSphere", 16, 1.5, scene);
+	blueSphere.setPivotMatrix(BABYLON.Matrix.Translation(-2, 0, 2), false);
+	
+	var greenSphere = BABYLON.Mesh.CreateSphere("greenSphere", 16, 1.5, scene);
+	greenSphere.setPivotMatrix(BABYLON.Matrix.Translation(-1.5, 3, 0), false);
+    
+    var purpleSphere = BABYLON.Mesh.CreateSphere("purpleSphere", 16, 1.5, scene);
+	purpleSphere.setPivotMatrix(BABYLON.Matrix.Translation(-3, 3, 1), false);
+
+	var generateSatelliteMaterial = function (root, color, others) {
+		var material = new BABYLON.StandardMaterial("satelliteMat" + root.name, scene);
+		material.diffuseColor = color;
+		
+		var probe = new BABYLON.ReflectionProbe("satelliteProbe" + root.name, 512, scene);
+		for (var index = 0; index < others.length; index++) {
+			probe.renderList.push(others[index]);			
+		}
+		
+		material.reflectionTexture = probe.cubeTexture;
+		
+		material.reflectionFresnelParameters = new BABYLON.FresnelParameters();
+    	material.reflectionFresnelParameters.bias = 0.02;
+		
+		root.material = material;
+		probe.attachToMesh(root);
+	}
+
+    const music = new BABYLON.Sound("idk", "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3", scene, null, { loop: true, autoplay: true });
+    music.setDirectionalCone(90, 180, 0);
+    music.setLocalDirectionToMesh(new BABYLON.Vector3(1, 0, 0));
+	
+	// ground
+    var mirror = BABYLON.Mesh.CreateBox("Mirror", 1.0, scene);
+    mirror.scaling = new BABYLON.Vector3(100.0, 0.01, 100.0);
+    mirror.material = new BABYLON.StandardMaterial("mirror", scene);
+    mirror.material.diffuseTexture = new BABYLON.Texture("https://github.com/BabylonJS/Babylon.js/raw/master/Playground/textures/albedo.png", scene);
+	mirror.material.diffuseTexture.uScale = 10;
+	mirror.material.diffuseTexture.vScale = 10;
+    mirror.material.reflectionTexture = new BABYLON.MirrorTexture("mirror", 1024, scene, true);
+    mirror.material.reflectionTexture.mirrorPlane = new BABYLON.Plane(0, -1.0, 0, -2.0);
+    mirror.material.reflectionTexture.renderList = [greenSphere, yellowSphere, blueSphere, purpleSphere, knot];
+    mirror.material.reflectionTexture.level = 0.5;
+    mirror.position = new BABYLON.Vector3(0, -2, 0);	
+	
+	// main material	
+    // colors are BGR instead of RGB... 
+	var mainMaterial = new BABYLON.StandardMaterial("main", scene);
+	knot.material = mainMaterial;
+	
+	var probe = new BABYLON.ReflectionProbe("main", 512, scene);
+	probe.renderList.push(yellowSphere);
+	probe.renderList.push(greenSphere);	
+	probe.renderList.push(blueSphere);	
+    probe.renderList.push(purpleSphere);
+	probe.renderList.push(mirror);	
+	mainMaterial.diffuseColor = new BABYLON.Color3(1, 0.5, 0.5);	
+	mainMaterial.reflectionTexture = probe.cubeTexture;
+	mainMaterial.reflectionFresnelParameters = new BABYLON.FresnelParameters();
+    mainMaterial.reflectionFresnelParameters.bias = 0.02;
+		
+	// satellite
+	generateSatelliteMaterial(yellowSphere, BABYLON.Color3.Teal(), [greenSphere, blueSphere, purpleSphere, knot, mirror]);
+	generateSatelliteMaterial(greenSphere, new BABYLON.Color3(1, 0.2, 0.5), [yellowSphere, blueSphere, purpleSphere, knot, mirror]);
+	generateSatelliteMaterial(blueSphere, new BABYLON.Color3(0.55, 0.29, 0.47), [greenSphere, yellowSphere, purpleSphere, knot, mirror]);
+    generateSatelliteMaterial(purpleSphere, new BABYLON.Color3(0.5, 0.5, 0.5), [greenSphere, purpleSphere, knot, mirror]);
+
+    // fog
+    // scene.fogMode = BABYLON.Scene.FOGMODE_LINEAR;
+    // scene.fogColor = scene.clearColor;
+    // scene.fogStart = 20.0;
+    // scene.fogEnd = 50.0;
+
+    // add axies
+    // const box = BABYLON.MeshBuilder.CreateBox("box", {});
+    // new BABYLON.AxesViewer(scene, 5);
+    // const localAxes = new BABYLON.AxesViewer(scene, 1);
+    // localAxes.xAxis.parent = box;
+    // localAxes.yAxis.parent = box;
+    // localAxes.zAxis.parent = box;	
+	
+	// Animations
+	scene.registerBeforeRender(function () {
+		yellowSphere.rotation.y += 0.01;
+		greenSphere.rotation.y += 0.01;
+		blueSphere.rotation.y += 0.01;
+        purpleSphere.rotation.y += 0.02;
+        // purpleSphere.rotation.x += 0.01;
+	});
+
+    // drag & drop
+    var xpointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(1,0,0)});
+    var ypointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,1,0)});
+    var zpointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)});
+    
+    // xpointerDragBehavior.useObjectOrientationForDragging = false;
+    // ypointerDragBehavior.useObjectOrientationForDragging = false;
+    // zpointerDragBehavior.useObjectOrientationForDragging = false;
+    xpointerDragBehavior.onDragStartObservable.add((event)=>{
+        console.log("dragStart");
+        console.log(event);
+    })
+    xpointerDragBehavior.onDragObservable.add((event)=>{
+        console.log("drag");
+        console.log(event);
+    })
+    xpointerDragBehavior.onDragEndObservable.add((event)=>{
+        console.log("dragEnd");
+        console.log(event);
+    })
+    // yellowSphere.addBehavior(xpointerDragBehavior);
+    // blueSphere.addBehavior(xpointerDragBehavior);
+    // greenSphere.addBehavior(xpointerDragBehavior);
+
+    return scene;
+};
+window.initFunction = async function() {
+    var asyncEngineCreation = async function() {
+        try {
+        return createDefaultEngine();
+        } catch(e) {
+        console.log("the available createEngine function failed. Creating the default engine instead");
+        return createDefaultEngine();
+        }
+    }
+
+    window.engine = await asyncEngineCreation();
+        if (!engine) throw 'engine should not be null.';
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();};
+        initFunction().then(() => {sceneToRender = scene                    
+        });
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+    <script> 
+        $(".babylonUnmuteIcon").on("click", 
+            function() { 
+                $(".music".hide());
+            })
+    </script>
+</body>
+</html>
