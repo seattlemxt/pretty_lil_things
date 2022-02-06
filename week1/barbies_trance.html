@@ -3,7 +3,10 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-        <title>Babylon.js sample code</title>
+        <title>Barbie's Trance</title>
+        <link rel = "icon" href = 
+"https://cdn.worldvectorlogo.com/logos/barbie-2.svg" 
+        type = "image/x-icon">
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -39,16 +42,29 @@
                 height: 100%;
                 touch-action: none;
             }
-            .music {
-                font-size: large;
+            .header {
+                font-size: medium;
                 font-family: 'Courier New', Courier, monospace;
+                color: white;
                 position: absolute;
-                padding-left: 15px;
+                margin: 0 auto;
+                left: 0;
+                right: 0;
+                top: 90%; /* Adjust this value to move the positioned div up and down */
+                text-align: center;
+                width: 60%; /* Set the width of the positioned div */
+            }
+            a {
+                /* text-decoration: none; */
+                color: white;
+                font-size: small;
             }
         </style>
     </head>
 <body>
-    <!-- <div class="music"> Play me.</div> -->
+    <div class="header"> Barbie's Trance <br> 
+        <a href ="https://github.com/seattlemxt/pretty_lil_things/blob/main/week1/barbies_trance.html">Sourcecode</a>
+    </div>
     <canvas id="renderCanvas"></canvas>
     <script>
     var canvas = document.getElementById("renderCanvas");
